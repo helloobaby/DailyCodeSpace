@@ -1,0 +1,10 @@
+# encoding:utf-8
+import tensorflow as tf
+def convert_to_tflite(model):
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tfmodel = converter.convert()
+    file = open('mnist.tflite', 'wb')
+    file.write(tfmodel)
+    file.close()
+
+convert_to_tflite()

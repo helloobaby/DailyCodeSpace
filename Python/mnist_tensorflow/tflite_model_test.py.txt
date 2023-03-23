@@ -1,0 +1,19 @@
+# encoding:utf-8
+import tensorflow as tf
+from PIL import Image
+import numpy as np
+
+interpreter = tf.lite.Interpreter(r'C:\Users\asdf\Desktop\mnist_tensorflow\mnist.tflite')
+interpreter.allocate_tensors()
+
+img = Image.open(r'C:\Users\asdf\Desktop\mnist_tensorflow\9.jpg').convert('L')
+img = np.reshape(img, (28, 28, 1)) / 255.
+x = np.array([1 - img],dtype='float32')
+
+
+interpreter.set_tensor(interpreter.get_input_details()[0]["index"], x)
+interpreter.invoke()
+output = interpreter.tensor(interpreter.get_output_details()[0]["index"])()[0]
+# Print the model's classification result
+digit = np.argmax(output)
+print('Predicted Digit: %d\nConfidence: %f' % (digit, output[digit]))
