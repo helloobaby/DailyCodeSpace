@@ -4,14 +4,21 @@
 
 using namespace std;
 
+#define version2
+
 struct fa
 {
+#ifdef version2
+  virtual void pure_test() = 0;
+#endif  // version2
+
 	virtual void f() { cout << "fa:f" << endl; }
 };
 
 struct son :public fa
 {
 	virtual void f() { cout << "son:f" << endl; fa::f();}
+        virtual void pure_test() override{}
 };
 
 struct thr 
@@ -65,16 +72,27 @@ int main()
 //.rdata:00419B38                 dd 0
 
 
+//	version2
+//		.rdata:00419B2C ; struct struct fa:    (#classinformer)
+//.rdata:00419B2C                 dd 0, offset ??_R4fa@@6B@ ; const fa::`RTTI Complete Object Locator'
+//.rdata:00419B34 ; void (__cdecl *const fa::`vftable'[3])()
+//.rdata:00419B34 ??_7fa@@6B@     dd offset j___purecall  ; DATA XREF: fa::fa(void)+12↑o //纯虚函数
+//.rdata:00419B38                 dd offset j_?f@fa@@UAEXXZ ; fa::f(void)
+//.rdata:00419B3C                 dd 2 dup(0)
+//.rdata:00419B44                 dd 0
+
+
+#ifndef version2
 	fa a;
-
-
-
+#endif
 	son b;
 	thr c;
+#ifndef version2
 	a.f();
+	_RTTICompleteObjectLocator * p = (_RTTICompleteObjectLocator*)((*((void***)&a))[-1]);
+#endif
 	c.f();
 
-	_RTTICompleteObjectLocator * p = (_RTTICompleteObjectLocator*)((*((void***)&a))[-1]);
 	_RTTICompleteObjectLocator* p2 = (_RTTICompleteObjectLocator*)((*((void***)&b))[-1]);
 	_RTTICompleteObjectLocator* p3 = (_RTTICompleteObjectLocator*)((*((void***)&c))[-1]);
 
