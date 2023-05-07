@@ -15,10 +15,32 @@ struct fa
 	virtual void f() { cout << "fa:f" << endl; }
 };
 
-struct son :public fa
+struct four {
+  virtual void ff() { cout << "four::ff"<<endl; }
+};
+
+/*
+void __thiscall son::son(son *this)
+{
+  fa::fa(this);
+  four::four(&this->four);
+  this->fa::__vftable = (son_vtbl *)son::`vftable'{for `fa'};
+  this->four::__vftable = (four_vtbl *)son::`vftable'{for `four'};
+}
+*/
+struct son :public fa,public four
 {
 	virtual void f() { cout << "son:f" << endl; fa::f();}
         virtual void pure_test() override{}
+		//.rdata:00419B60 ; void (__cdecl *const son::`vftable'{for `fa'}[4])()
+//	.rdata:00419B60 ??_7son@@6Bfa@@@ dd offset j_?pure_test@son@@UAEXXZ
+//.rdata:00419B60                                         ; DATA XREF: son::son(void)+36↑o
+//.rdata:00419B60                                         ; son::pure_test(void)
+//.rdata:00419B64                 dd offset j_?f@son@@UAEXXZ ; son::f(void)
+//.rdata:00419B68                 dd offset j_?son_special@son@@UAEXXZ ; son::son_special(void) //注意这里
+	virtual void son_special() { cout << "son::special" << endl; }
+
+	void son_special2() {cout << "son::special2" << endl;}
 };
 
 struct thr 
