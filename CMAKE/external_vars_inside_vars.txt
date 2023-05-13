@@ -1,0 +1,12 @@
+project(hello)
+
+# 自定义变量
+# -DHELLO=1
+if(HELLO) 
+    message("hello")
+endif()
+
+# 内部变量
+message("${CMAKE_BUILD_TYPE}")
+message("${CMAKE_CURRENT_BINARY_DIR}")
+message("${PROJECT_NAME}")
