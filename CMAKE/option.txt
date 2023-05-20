@@ -1,0 +1,4 @@
+option(TEST_OPT "description" OFF)
+if (TEST_OPT)
+    message("TEST_OPT is ON")
+endif()
