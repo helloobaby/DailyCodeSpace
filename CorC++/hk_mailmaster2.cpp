@@ -46,22 +46,66 @@ Type_SendMailFlowWmsvr Ori_SendMailFlowWmsvr;
 int __fastcall Hook_SendMailFlowWmsvr(char* _this) {
   int result = Ori_SendMailFlowWmsvr(_this);
 
-  // 提取收件人
-  char* receiver_utf8 = (char*)*((int*)(_this + 0xBC));
-  //OutputDebug(L"receiver_utf8 pointer %p\n", receiver_utf8);
+  // 提取发件人
+  // std::string::operator=((this + 0xBC), v2);
+  char* sender_utf8 = (char*)*((int*)(_this + 0xBC));
+  // OutputDebug(L"receiver_utf8 pointer %p\n", receiver_utf8);
 
-  wchar_t* receiver_utf16 = Curl_convert_UTF8_to_wchar(receiver_utf8);
-  OutputDebug(L"发件人 %ls\n", receiver_utf16);
+  wchar_t* sender_utf16 = Curl_convert_UTF8_to_wchar(sender_utf8);
+  OutputDebug(L"发件人 %ls\n", sender_utf16);
 
+  // 提取主题
+  // if ( this + 0xD4 != v6 )
   wchar_t* subject = Curl_convert_UTF8_to_wchar(_this + 0xD4);
   OutputDebug(L"发件主题 %ls\n", subject);
 
-  char* t = (char*)(*(int*)(_this + 4));
-  t = (char*)*((int*)(t + 0x2C));
-  t = (char*)*(int*)t;
+  // 获取发送内容1
+  //[esi+4]+2C
 
-  wchar_t* data = Curl_convert_UTF8_to_wchar(t); 
-  OutputDebug(L"发件内容 %ls\n", data);
+  //int* a = *(int**)(_this + 4);
+  //a = *(int**)((char*)a + 0x2C);
+  //wchar_t* data1 = Curl_convert_UTF8_to_wchar((char*)a);
+  //if (data1)
+  //  OutputDebug(L"发件内容1 %ls\n", data1);
+  //else {
+  //  //a = *(int**)a;
+  //  //data1 = Curl_convert_UTF8_to_wchar((char*)a);
+  //  //OutputDebug(L"发件内容1 %ls\n", data1);
+  //}
+
+  // 内容2
+  // [[[esi+4]]+90]
+
+  /*int* b = *(int**)(_this + 4);
+  b = *(int**)(b);
+  b = *(int**)((char*)b + 0x90);
+
+  wchar_t* data = Curl_convert_UTF8_to_wchar((char*)b);
+  if (data) {
+    OutputDebug(L"发件内容2 %ls\n", data);
+  } else {
+  }*/
+
+  // 提取收件人
+  // [[[[esi+4]]+100]]+C
+  int* t = *(int**)(_this + 4);
+  t = *(int**)(t);
+  t = *(int**)((char*)t + 0x100);
+  t = *(int**)(t);
+  wchar_t* sender = Curl_convert_UTF8_to_wchar((char*)t + 0xC);
+  if (!sender) {
+    // OutputDebug(L"收件人 <NULL>\n");
+    t = *(int**)((char*)t + 0xC);
+    sender = Curl_convert_UTF8_to_wchar((char*)t);
+    if (sender)
+        OutputDebug(L"收件人 %ls\n", sender);
+    else {
+      // 调试器接管int3异常 第一次暂停
+      // DebugBreak();
+      OutputDebug(L"收件人 <NULL>\n");
+    }
+  } else
+    OutputDebug(L"收件人 %ls\n", sender);
 
   return result;
 }
