@@ -21,8 +21,7 @@ arch = Architecture['x86']
 patch_task = {}
 
 # cmp eax,<constant value> 或者是 cmp ecx,<constant value>
-swVar = 'eax'
-#swVar = 'ecx'
+swVar = 'ecx'
 
 # llil上模式匹配特征块,一般是通用的
 def is_dispatch_bb(bb: LowLevelILBasicBlock):
@@ -70,6 +69,17 @@ def change_state(text_token_list: list) -> int:
         # 返回state
         return state
     return None
+
+# 定位cmovcc
+# cmova   ebx, r15d
+def change_state2(text_token_list:list) -> str:
+    if (len(text_token_list) < 5):
+        return None
+    if 'cmov' in str(text_token_list[0]):
+        return str(text_token_list[2])
+    
+    return None 
+        
 
 
 # 获得这条指令在这个函数对应的basicblock
@@ -123,6 +133,11 @@ def is_safely_patched(addr: int):
 
     return addr
 
+def caculate_bb_inst_count(bb:BasicBlock) -> int:
+    _len= len(bb.disassembly_text)
+    if 'Does not return' in str(bb.disassembly_text[-1]):
+        _len=_len-1 
+    return _len
 
 # main
 
@@ -138,17 +153,19 @@ for bb in current_llil.basic_blocks:
 for bb in current_function.basic_blocks:
 
     # 统计这个basicblock的指令数，什么len length全是指令字节数
-    instruction_count = len(bb.disassembly_text)
+    instruction_count = caculate_bb_inst_count(bb)
 
     for i in range(0, instruction_count):
         address = bb.disassembly_text[i].address
+        
+        # 调试
+        #print(address)
+
 
         # 主要是有Does not return这种东西
         # instruction_count为2,实际索引只能为0,1直接越界
-        try:
-            state = change_state(bb[i][0])
-        except:
-            continue
+        
+        state = change_state(bb[i][0])
         if state != None:
             print('识别到的更改状态的指令地址 ' + hex(address))
 
@@ -175,7 +192,9 @@ for bb in current_function.basic_blocks:
 
             else:
                 print('Patch不了')
+            
+                
+        
 
 for address in patch_task:
     bv.write(address, arch.assemble(patch_task[address], addr=address))
-
